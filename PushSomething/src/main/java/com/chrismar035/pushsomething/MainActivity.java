@@ -16,7 +16,6 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends Activity {
     public static final String PROPERTY_REG_ID = "registration_id";
@@ -31,7 +30,7 @@ public class MainActivity extends Activity {
     GoogleCloudMessaging gcm;
     Context context;
 
-    String regid;
+    String regID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,11 +43,11 @@ public class MainActivity extends Activity {
 
         if(checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
-            regid = getRegistrationId(context);
+            regID = getRegistrationId(context);
 
-            Log.i(TAG, "getRegistrationId: " + regid);
-            if(regid.isEmpty()) {
-                new backgroundRegistrationTask().execute("");
+            if(regID.isEmpty()) {
+                Log.i(TAG, "Registration ID blank. Registering in background.");
+                new backgroundRegistrationTask().execute();
             }
 
         } else {
@@ -56,27 +55,24 @@ public class MainActivity extends Activity {
         }
     }
 
-    private class backgroundRegistrationTask extends AsyncTask<String, Void, String> {
+    private class backgroundRegistrationTask extends AsyncTask<Void, Void, String> {
 
         @Override
-        protected String doInBackground(String... params) {
+        protected String doInBackground(Void... params) {
             String msg;
             try {
                 if(gcm == null) {
                     gcm = GoogleCloudMessaging.getInstance(context);
                 }
-                Log.i(TAG, "GCM instance gotten");
-                regid = gcm.register(SENDER_ID);
-                msg = "Device registered, registration ID=" + regid;
-                Log.i(TAG, msg);
+                regID = gcm.register(SENDER_ID);
+                msg = "Device registered, registration ID=" + regID;
 
                 sendRegistrationToBackend();
-
-                storeRegistrationId(context, regid);
+                storeRegistrationId(context, regID);
             } catch (IOException ex) {
                 msg = "BackgroundRegistration Error: " + ex.getMessage();
-                Log.i(TAG, msg);
             }
+            Log.i(TAG, msg);
             return msg;
         }
 
