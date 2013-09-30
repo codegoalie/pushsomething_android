@@ -1,12 +1,16 @@
 package com.chrismar035.pushsomething;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.TextView;
@@ -14,6 +18,7 @@ import android.widget.TextView;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.android.gms.internal.c;
 
 import java.io.IOException;
 
@@ -49,6 +54,8 @@ public class MainActivity extends Activity {
                 Log.i(TAG, "Registration ID blank. Registering in background.");
                 new backgroundRegistrationTask().execute();
             }
+            Log.i(TAG, "Registration successful. Reg ID: " + regID);
+            mDisplay.append("\n" + regID + "\n");
 
         } else {
             mDisplay.setText("Google Play app not installed");
