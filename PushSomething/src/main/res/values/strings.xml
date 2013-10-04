@@ -3,6 +3,6 @@
 
     <string name="app_name">Push Something</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Goodbye!</string>
+    <string name="welcome">Welcome to Push Something! Sign in to start getting notifications!</string>
 
 </resources>
