@@ -19,6 +19,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -34,9 +37,11 @@ public class MainActivity extends Activity implements
 
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
+    private final static String PROPERTY_ACCOUNT_NAME = "account_name";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     String SENDER_ID = "762651962812";
+    String SERVER_WEB_ID = "762651962812.apps.googleusercontent.com";
 
     static final String TAG = "PushSomething";
 
@@ -49,6 +54,15 @@ public class MainActivity extends Activity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "Creating Main");
+        SharedPreferences prefs = getSharedPreferences(PROPERTY_ACCOUNT_NAME, 0);
+        String account_name = prefs.getString(PROPERTY_ACCOUNT_NAME, "");
+        Log.i(TAG, "Account name is: " + account_name);
+        if (account_name.isEmpty()) {
+            Log.i(TAG, "User not signed in. Starting SignIn");
+            backToSignIn();
+            return;
+        }
         mPlusClient = new PlusClient.Builder(this, this, this)
                 .setVisibleActivities("http://schemas.google.com/AddActivity")
                 .build();
@@ -58,20 +72,7 @@ public class MainActivity extends Activity implements
 
         context = getApplicationContext();
 
-        if(checkPlayServices()) {
-            gcm = GoogleCloudMessaging.getInstance(this);
-            regID = getRegistrationId(context);
-
-            if(regID.isEmpty()) {
-                Log.i(TAG, "Registration ID blank. Registering in background.");
-                new backgroundRegistrationTask().execute();
-            }
-            Log.i(TAG, "Registration successful. Reg ID: " + regID);
-            mDisplay.append("\n\nAnd you're ready for push notifications! Nice work!");
-
-        } else {
-            mDisplay.setText("Google Play app not installed");
-        }
+        registerForGCM();
     }
 
     @Override
@@ -90,9 +91,14 @@ public class MainActivity extends Activity implements
         if (mPlusClient.isConnected()) {
             mPlusClient.clearDefaultAccount();
             mPlusClient.disconnect();
+            SharedPreferences prefs = getSharedPreferences(PROPERTY_ACCOUNT_NAME, 0);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString(PROPERTY_ACCOUNT_NAME, "");
+            editor.commit();
             mPlusClient.connect();
             String msg = "Signed out";
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+            Log.i(TAG, msg);
         }
     }
 
@@ -108,11 +114,21 @@ public class MainActivity extends Activity implements
     private void backToSignIn() {
         Intent backToSignInIntent = new Intent(this, SignInActivity.class);
         startActivity(backToSignInIntent);
+        this.finish();
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         backToSignIn();
+    }
+
+    public void clearGCMClick(View view) {
+        Log.i(TAG, "Clearing GCM ID");
+        final SharedPreferences prefs = getGCMPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PROPERTY_REG_ID, "");
+        editor.putInt(PROPERTY_APP_VERSION, 0);
+        editor.commit();
     }
 
     private class backgroundRegistrationTask extends AsyncTask<Void, Void, String> {
@@ -142,6 +158,22 @@ public class MainActivity extends Activity implements
 
         private void sendRegistrationToBackend() {
             // Send to Rails here... will manually enter for now.
+            String code = null;
+            try {
+                code = GoogleAuthUtil.getToken(context,
+                        mPlusClient.getAccountName(),
+                        "audience:server:client_id:" + SERVER_WEB_ID);
+            } catch (IOException transientEx) {
+                // implement backoff for retrys
+                Log.e(TAG, "Network or Server error getting server token.");
+            } catch (UserRecoverableAuthException e) {
+                code = null;
+            } catch (GoogleAuthException e) {
+                return;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            Log.i(TAG, "Server token gotten: " + code);
         }
 
         private void storeRegistrationId(Context context, String regid) {
@@ -215,5 +247,22 @@ public class MainActivity extends Activity implements
             return false;
         }
         return true;
+    }
+
+    private void registerForGCM() {
+        if(checkPlayServices()) {
+            gcm = GoogleCloudMessaging.getInstance(this);
+            regID = getRegistrationId(context);
+
+            if(regID.isEmpty()) {
+                Log.i(TAG, "Registration ID blank. Registering in background.");
+                new backgroundRegistrationTask().execute();
+            }
+            Log.i(TAG, "Registration successful. Reg ID: " + regID);
+            mDisplay.append("\n\nAnd you're ready for push notifications! Nice work!");
+
+        } else {
+            mDisplay.setText("Google Play app not installed");
+        }
     }
 }

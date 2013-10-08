@@ -25,9 +25,8 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.chrismar035.pushsomething.SignInActivity"
-            android:label="@string/app_name"
-            android:noHistory="true">
+            android:name="com.chrismar035.pushsomething.MainActivity"
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -46,8 +45,9 @@
         </receiver>
 
         <activity
-            android:name="com.chrismar035.pushsomething.MainActivity"
-            android:label="@string/title_activity_main" >
+            android:name="com.chrismar035.pushsomething.SignInActivity"
+            android:label="@string/app_name"
+            android:excludeFromRecents="true" >
         </activity>
     </application>
 

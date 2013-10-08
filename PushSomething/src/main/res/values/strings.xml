@@ -9,5 +9,6 @@
     <string name="title_activity_main">You\'re in!</string>
     <string name="hello_world">Hello world!</string>
     <string name="sign_out">Sign out</string>
+    <string name="clear_gcm">Clear Push Notification Registration</string>
 
 </resources>

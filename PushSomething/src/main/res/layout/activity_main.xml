@@ -14,13 +14,26 @@
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
         android:text="@string/welcome" />
-
-    <Button
-        android:id="@+id/sing_out_button"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+    <RelativeLayout
         android:layout_alignParentBottom="true"
-        android:text="@string/sign_out"
-        android:onClick="signOutClick" />
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent" >
+
+        <Button
+            android:id="@+id/clear_local_gcm_button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/clear_gcm"
+            android:onClick="clearGCMClick" />
+
+        <Button
+            android:id="@+id/sing_out_button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sign_out"
+            android:onClick="signOutClick"
+            android:layout_below="@id/clear_local_gcm_button" />
+
+    </RelativeLayout>
 
 </RelativeLayout>

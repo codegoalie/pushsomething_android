@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
@@ -23,6 +24,7 @@ public class SignInActivity extends Activity implements
         GooglePlayServicesClient.OnConnectionFailedListener  {
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    private final static String PROPERTY_ACCOUNT_NAME = "account_name";
 
     private ProgressDialog mConnectionProgressDialog;
     private PlusClient mPlusClient;
@@ -33,6 +35,7 @@ public class SignInActivity extends Activity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "Creating SignIn");
         setContentView(R.layout.activity_signin);
 
         mPlusClient = new PlusClient.Builder(this, this, this)
@@ -41,7 +44,6 @@ public class SignInActivity extends Activity implements
         mConnectionProgressDialog = new ProgressDialog(this);
         mConnectionProgressDialog.setMessage("Signing in...");
         findViewById(R.id.sign_in_button).setOnClickListener(this);
-
     }
 
 
@@ -57,13 +59,16 @@ public class SignInActivity extends Activity implements
         Log.i(TAG, "Handling sign in");
 
         if (v.getId() == R.id.sign_in_button && !mPlusClient.isConnected()) {
+            Log.i(TAG, "Sign-in clicked and not yet connected");
             if (mConnectionResult == null) {
                 mConnectionProgressDialog.show();
                 Log.i(TAG, "showing progress");
             } else {
                 try {
+                    Log.i(TAG, "Starting resolution");
                     mConnectionResult.startResolutionForResult(this, PLAY_SERVICES_RESOLUTION_REQUEST);
                 } catch (IntentSender.SendIntentException e) {
+                    Log.i(TAG, "Catching resolution error");
                     mConnectionResult = null;
                     mPlusClient.connect();
                 }
@@ -84,6 +89,7 @@ public class SignInActivity extends Activity implements
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
+        Log.i(TAG, "Connection Failed");
         if (mConnectionProgressDialog.isShowing()) {
             Log.i(TAG, "Connection failed");
             // The user clicked sign in already. Start to resolve connection errors.
@@ -103,10 +109,10 @@ public class SignInActivity extends Activity implements
     @Override
     public void onConnected(Bundle connectionHint) {
         // We've resolved any errors
+        Log.i(TAG, "Client Connected.");
+        storeAccountName();
         mConnectionProgressDialog.dismiss();
-        Log.i(TAG, "Sign in success. Proceeding to MainActivity.");
-        Intent start_main_intent = new Intent(this, MainActivity.class);
-        startActivity(start_main_intent);
+        onToMain();
     }
 
     @Override
@@ -116,9 +122,27 @@ public class SignInActivity extends Activity implements
 
     @Override
     protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
+        Log.i(TAG, "onActivityResult");
         if (requestCode == PLAY_SERVICES_RESOLUTION_REQUEST && responseCode == RESULT_OK) {
+            Log.i(TAG, "OK! Connecting");
             mConnectionResult = null;
             mPlusClient.connect();
         }
+    }
+
+    private void onToMain() {
+        Log.i(TAG, "Sign in success. Proceeding to MainActivity.");
+        Intent start_main_intent = new Intent(this, MainActivity.class);
+        startActivity(start_main_intent);
+        this.finish();
+    }
+
+    private void storeAccountName() {
+        SharedPreferences prefs = getSharedPreferences(PROPERTY_ACCOUNT_NAME, 0);
+        SharedPreferences.Editor editor = prefs.edit();
+        String accountName = mPlusClient.getAccountName();
+        Log.i(TAG, "Storing Account Name: " + accountName);
+        editor.putString(PROPERTY_ACCOUNT_NAME, accountName);
+        editor.commit();
     }
 }
