@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.support.v4.app.NotificationCompat;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -29,7 +30,24 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.internal.c;
 import com.google.android.gms.plus.PlusClient;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class MainActivity extends Activity implements
         GooglePlayServicesClient.ConnectionCallbacks,
@@ -42,6 +60,8 @@ public class MainActivity extends Activity implements
 
     String SENDER_ID = "762651962812";
     String SERVER_WEB_ID = "762651962812.apps.googleusercontent.com";
+
+
 
     static final String TAG = "PushSomething";
 
@@ -156,24 +176,64 @@ public class MainActivity extends Activity implements
         protected void onPostExecute(String msg) {
         }
 
-        private void sendRegistrationToBackend() {
+        private void sendRegistrationToBackend() throws IOException {
             // Send to Rails here... will manually enter for now.
+            JSONObject payload = new JSONObject();
+
+            final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+
+            try {
+                payload.put("jwt", getJWT());
+                payload.put("gcm_id", regID);
+                payload.put("uid", tm.getDeviceId());
+                Log.i(TAG, "Registering with the server\n" + payload.toString(2));
+
+            } catch (JSONException e) {
+                Log.i(TAG, "JSON creation failed");
+            }
+
+/*
+            HttpParams params = new BasicHttpParams();
+            HttpConnectionParams.setConnectionTimeout(params, 10000);
+            HttpConnectionParams.getSoTimeout(params);
+            HttpClient client = new DefaultHttpClient(params);
+
+            HttpPost request = new HttpPost("http://192.168.1.74:3000/receivers");
+            request.setEntity(new ByteArrayEntity(payload.toString().getBytes("UTF8")));
+            HttpResponse response = client.execute(request);
+*/
+
+
+            URL url = new URL("http://192.168.1.74:3000/receivers");
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            try {
+                urlConnection.setDoOutput(true);
+                urlConnection.setChunkedStreamingMode(0);
+
+                OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
+                out.write(payload.toString().getBytes("UTF8"));
+            } finally {
+                urlConnection.disconnect();
+            }
+            Log.i(TAG, "Posting Complete");
+        }
+
+        private String getJWT() {
             String code = null;
             try {
                 code = GoogleAuthUtil.getToken(context,
                         mPlusClient.getAccountName(),
                         "audience:server:client_id:" + SERVER_WEB_ID);
             } catch (IOException transientEx) {
-                // implement backoff for retrys
+                // implement back off for retries
                 Log.e(TAG, "Network or Server error getting server token.");
             } catch (UserRecoverableAuthException e) {
                 code = null;
-            } catch (GoogleAuthException e) {
-                return;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
             Log.i(TAG, "Server token gotten: " + code);
+            return code;
         }
 
         private void storeRegistrationId(Context context, String regid) {
