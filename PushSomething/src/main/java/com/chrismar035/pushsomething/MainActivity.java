@@ -34,10 +34,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -192,19 +194,19 @@ public class MainActivity extends Activity implements
                 Log.i(TAG, "JSON creation failed");
             }
 
-/*
             HttpParams params = new BasicHttpParams();
             HttpConnectionParams.setConnectionTimeout(params, 10000);
             HttpConnectionParams.getSoTimeout(params);
             HttpClient client = new DefaultHttpClient(params);
 
-            HttpPost request = new HttpPost("http://192.168.1.74:3000/receivers");
-            request.setEntity(new ByteArrayEntity(payload.toString().getBytes("UTF8")));
+            HttpPost request = new HttpPost("http://192.168.1.74:3000/api/v1/receivers");
+            StringEntity entity = new StringEntity(payload.toString(), HTTP.UTF_8);
+            entity.setContentType("application/json");
+            request.setEntity(entity);
             HttpResponse response = client.execute(request);
-*/
 
 
-            URL url = new URL("http://192.168.1.74:3000/receivers");
+            /*URL url = new URL("http://192.168.1.74:3000/receivers");
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             try {
                 urlConnection.setDoOutput(true);
@@ -214,7 +216,7 @@ public class MainActivity extends Activity implements
                 out.write(payload.toString().getBytes("UTF8"));
             } finally {
                 urlConnection.disconnect();
-            }
+            }*/
             Log.i(TAG, "Posting Complete");
         }
 
