@@ -1,39 +1,31 @@
 package com.chrismar035.pushsomething;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.ProgressDialog;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Activity;
-import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
-import android.view.View;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.internal.c;
 import com.google.android.gms.plus.PlusClient;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
@@ -43,13 +35,7 @@ import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class MainActivity extends Activity implements
         GooglePlayServicesClient.ConnectionCallbacks,
@@ -60,9 +46,9 @@ public class MainActivity extends Activity implements
     private final static String PROPERTY_ACCOUNT_NAME = "account_name";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
+    private final static String API_ROOT = "http://10.0.1.185:3000/api/v1/";
     String SENDER_ID = "762651962812";
     String SERVER_WEB_ID = "762651962812.apps.googleusercontent.com";
-
 
 
     static final String TAG = "PushSomething";
@@ -109,7 +95,7 @@ public class MainActivity extends Activity implements
         mPlusClient.disconnect();
     }
 
-    public void signOutClick(View view) {
+    public void signOutClick(MenuItem _) {
         if (mPlusClient.isConnected()) {
             mPlusClient.clearDefaultAccount();
             mPlusClient.disconnect();
@@ -144,7 +130,7 @@ public class MainActivity extends Activity implements
         backToSignIn();
     }
 
-    public void clearGCMClick(View view) {
+    public void clearGCMClick(MenuItem _) {
         Log.i(TAG, "Clearing GCM ID");
         final SharedPreferences prefs = getGCMPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
@@ -199,7 +185,7 @@ public class MainActivity extends Activity implements
             HttpConnectionParams.getSoTimeout(params);
             HttpClient client = new DefaultHttpClient(params);
 
-            HttpPost request = new HttpPost("http://192.168.1.74:3000/api/v1/receivers");
+            HttpPost request = new HttpPost(API_ROOT + "receivers");
             StringEntity entity = new StringEntity(payload.toString(), HTTP.UTF_8);
             entity.setContentType("application/json");
             request.setEntity(entity);
