@@ -129,6 +129,32 @@ public class MainActivity extends Activity implements
         mPlusClient.disconnect();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.i(TAG, "Signed in as: " + mPlusClient.getAccountName());
+    }
+
+    @Override
+    public void onDisconnected() {
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        backToSignIn();
+    }
+
     public void signOutClick(MenuItem _) {
         if (mPlusClient.isConnected()) {
             mPlusClient.clearDefaultAccount();
@@ -144,26 +170,6 @@ public class MainActivity extends Activity implements
         }
     }
 
-    @Override
-    public void onConnected(Bundle bundle) {
-        mDisplay.append("\n\nSigned in as: " + mPlusClient.getAccountName());
-    }
-
-    @Override
-    public void onDisconnected() {
-    }
-
-    private void backToSignIn() {
-        Intent backToSignInIntent = new Intent(this, SignInActivity.class);
-        startActivity(backToSignInIntent);
-        this.finish();
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        backToSignIn();
-    }
-
     public void clearGCMClick(MenuItem _) {
         Log.i(TAG, "Clearing GCM ID");
         final SharedPreferences prefs = getGCMPreferences(context);
@@ -171,6 +177,24 @@ public class MainActivity extends Activity implements
         editor.putString(PROPERTY_REG_ID, "");
         editor.putInt(PROPERTY_APP_VERSION, 0);
         editor.commit();
+    }
+
+    public void deleteNotificationsClick(MenuItem _) {
+        Cursor cursor = dataSource.getAllNotifications();
+
+        cursor.moveToFirst();
+        while(!cursor.isAfterLast()) {
+            dataSource.deleteNotification(cursor);
+            cursor.moveToNext();
+        }
+
+        dataAdapter.changeCursor(dataSource.getAllNotifications());
+    }
+
+    private void backToSignIn() {
+        Intent backToSignInIntent = new Intent(this, SignInActivity.class);
+        startActivity(backToSignInIntent);
+        this.finish();
     }
 
     private class backgroundRegistrationTask extends AsyncTask<Void, Void, String> {
@@ -298,13 +322,6 @@ public class MainActivity extends Activity implements
 
     private SharedPreferences getGCMPreferences(Context context) {
         return getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
     }
 
     private boolean checkPlayServices() {
