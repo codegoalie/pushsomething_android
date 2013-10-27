@@ -1,8 +1,10 @@
 package com.chrismar035.pushsomething;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -61,6 +63,11 @@ public class MainActivity extends Activity implements
     PlusClient mPlusClient;
     String regID;
 
+    private NotificationsDataSource dataSource;
+    private SimpleCursorAdapter dataAdapter;
+
+    private BroadcastReceiver receiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,6 +113,12 @@ public class MainActivity extends Activity implements
             Log.e(TAG, "Unable to open Notification data source on Create");
             Toast.makeText(this, "Unable to read notification", Toast.LENGTH_LONG).show();
         }
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.chrismar035.pushsomething.UpdateNotificationList");
+
+        receiver = new UpdateNotificationList();
+        registerReceiver(receiver, filter);
     }
 
     @Override
@@ -132,6 +145,7 @@ public class MainActivity extends Activity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(receiver);
     }
 
     @Override
@@ -189,6 +203,17 @@ public class MainActivity extends Activity implements
         }
 
         dataAdapter.changeCursor(dataSource.getAllNotifications());
+    }
+
+    public class UpdateNotificationList extends BroadcastReceiver {
+        private static final String TAG = "PushSomething.UpdateNotificationList";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Cursor cursor = dataSource.getAllNotifications();
+            dataAdapter.changeCursor(cursor);
+            Log.i(TAG, "Notified notification data source of changed data");
+        }
     }
 
     private void backToSignIn() {
