@@ -10,5 +10,8 @@
     <string name="action_settings">Settings</string>
     <string name="action_sign_out">Sign out</string>
     <string name="action_clear_gcm">Clear GCM Data</string>
+    <string name="notification_list_item_default_title">Example application</string>
+    <string name="notification_list_item_default_body">Description</string>
+    <string name="notification_list_item_default_icon_desc">Source App</string>
 
 </resources>

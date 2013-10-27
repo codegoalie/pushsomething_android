@@ -6,13 +6,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -36,6 +38,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class MainActivity extends Activity implements
         GooglePlayServicesClient.ConnectionCallbacks,
@@ -53,7 +56,6 @@ public class MainActivity extends Activity implements
 
     static final String TAG = "PushSomething";
 
-    TextView mDisplay;
     GoogleCloudMessaging gcm;
     Context context;
     PlusClient mPlusClient;
@@ -76,11 +78,34 @@ public class MainActivity extends Activity implements
                 .build();
 
         setContentView(R.layout.activity_main);
-        mDisplay = (TextView) findViewById(R.id.main_view);
-
         context = getApplicationContext();
-
         registerForGCM();
+
+        final ListView listview = (ListView) findViewById(R.id.notification_list);
+
+        dataSource = new NotificationsDataSource(this);
+        try {
+            dataSource.open();
+
+            Cursor cursor = dataSource.getAllNotifications();
+
+            // The desired columns to be bound
+            String[] columns = new String[] {
+                    NotificationTableHelper.COLUMN_TITLE,
+                    NotificationTableHelper.COLUMN_BODY
+            };
+
+            // the XML defined views which the data will be bound to
+            int[] to = new int[] {
+                    R.id.title,
+                    R.id.body
+            };
+            dataAdapter = new SimpleCursorAdapter(this, R.layout.notification_list_item, cursor, columns, to, 0);
+            listview.setAdapter(dataAdapter);
+        } catch (SQLException e) {
+            Log.e(TAG, "Unable to open Notification data source on Create");
+            Toast.makeText(this, "Unable to read notification", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -90,8 +115,17 @@ public class MainActivity extends Activity implements
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        try { dataSource.open(); }
+        catch (SQLException e) { Log.e(TAG, "Unable to open Notification data source on Resume"); }
+        checkPlayServices();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
+        dataSource.close();
         mPlusClient.disconnect();
     }
 
@@ -267,13 +301,6 @@ public class MainActivity extends Activity implements
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        checkPlayServices();
-    }
-
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -307,10 +334,9 @@ public class MainActivity extends Activity implements
                 new backgroundRegistrationTask().execute();
             }
             Log.i(TAG, "Registration successful. Reg ID: " + regID);
-            mDisplay.append("\n\nAnd you're ready for push notifications! Nice work!");
 
         } else {
-            mDisplay.setText("Google Play app not installed");
+            Toast.makeText(this, "Google Play app not installed", Toast.LENGTH_LONG).show();
         }
     }
 }
