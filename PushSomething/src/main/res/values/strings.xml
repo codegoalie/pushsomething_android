@@ -13,5 +13,6 @@
     <string name="notification_list_item_default_title">Example application</string>
     <string name="notification_list_item_default_body">Description</string>
     <string name="notification_list_item_default_icon_desc">Source App</string>
+    <string name="action_delete_notifications">Delete all notifications</string>
 
 </resources>
