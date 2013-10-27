@@ -248,7 +248,6 @@ public class MainActivity extends Activity implements
         }
 
         private void sendRegistrationToBackend() throws IOException {
-            // Send to Rails here... will manually enter for now.
             JSONObject payload = new JSONObject();
 
             final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
@@ -274,19 +273,7 @@ public class MainActivity extends Activity implements
             request.setEntity(entity);
             HttpResponse response = client.execute(request);
 
-
-            /*URL url = new URL("http://192.168.1.74:3000/receivers");
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            try {
-                urlConnection.setDoOutput(true);
-                urlConnection.setChunkedStreamingMode(0);
-
-                OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-                out.write(payload.toString().getBytes("UTF8"));
-            } finally {
-                urlConnection.disconnect();
-            }*/
-            Log.i(TAG, "Posting Complete");
+            Log.i(TAG, "Posting Complete" + response);
         }
 
         private String getJWT() {
