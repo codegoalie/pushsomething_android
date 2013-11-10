@@ -41,6 +41,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class MainActivity extends Activity implements
         GooglePlayServicesClient.ConnectionCallbacks,
@@ -255,7 +256,7 @@ public class MainActivity extends Activity implements
             try {
                 payload.put("jwt", getJWT());
                 payload.put("gcm_id", regID);
-                payload.put("uid", tm.getDeviceId());
+                payload.put("uid", getUUID());
                 Log.i(TAG, "Registering with the server\n" + payload.toString(2));
 
             } catch (JSONException e) {
@@ -367,5 +368,17 @@ public class MainActivity extends Activity implements
         } else {
             Toast.makeText(this, "Google Play app not installed", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private String getUUID() {
+        final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+
+        final String tmDevice, tmSerial, androidId;
+        tmDevice = "" + tm.getDeviceId();
+        tmSerial = "" + tm.getSimSerialNumber();
+        androidId = "" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+
+        UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
+        return deviceUuid.toString();
     }
 }
