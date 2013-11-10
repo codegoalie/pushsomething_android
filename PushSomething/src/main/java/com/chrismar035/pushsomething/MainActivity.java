@@ -230,7 +230,7 @@ public class MainActivity extends Activity implements
             String msg;
             try {
                 if(gcm == null) {
-                    gcm = GoogleCloudMessaging.getInstance(context);
+                    gcm = GoogleCloudMessaging.getInstance(getApplicationContext());
                 }
                 regID = gcm.register(SENDER_ID);
                 msg = "Device registered, registration ID=" + regID;
@@ -356,7 +356,7 @@ public class MainActivity extends Activity implements
 
     private void registerForGCM() {
         if(checkPlayServices()) {
-            gcm = GoogleCloudMessaging.getInstance(this);
+            gcm = GoogleCloudMessaging.getInstance(getApplicationContext());
             regID = getRegistrationId(context);
 
             if(regID.isEmpty()) {
