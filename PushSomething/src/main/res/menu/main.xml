@@ -1,10 +1,15 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.chrismar035.pushsomething.MainActivity" >
-    
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_delete_notifications"
+        android:title="@string/action_delete_notifications"
+        android:onClick="deleteNotificationsClick" />
+
+    <item android:id="@+id/action_clear_GCM"
+        android:title="@string/action_clear_gcm"
+        android:onClick="clearGCMClick" />
+
+    <item android:id="@+id/action_sign_ouy"
+        android:title="@string/action_sign_out"
+        android:onClick="signOutClick"
         android:orderInCategory="100"
-        app:showAsAction="never" />
+        android:showAsAction="never" />
 </menu>

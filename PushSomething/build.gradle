@@ -20,6 +20,11 @@ android {
         minSdkVersion 8
         targetSdkVersion 19
     }
+    signingConfigs {
+        debug {
+            storeFile file("../.android/debug.keystore")
+        }
+    }
     buildTypes {
         release {
             runProguard false
@@ -36,4 +41,5 @@ android {
 dependencies {
     compile 'com.android.support:support-v4:19.0.0'
     compile 'com.android.support:appcompat-v7:19.0.0'
+    compile 'com.google.android.gms:play-services:3.2.+'
 }
