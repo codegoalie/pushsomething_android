@@ -252,8 +252,6 @@ public class MainActivity extends Activity implements
         private void sendRegistrationToBackend() throws IOException {
             JSONObject payload = new JSONObject();
 
-            final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-
             try {
                 payload.put("jwt", getJWT());
                 payload.put("gcm_id", regID);
