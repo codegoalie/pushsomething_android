@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements
     private NotificationsDataSource dataSource;
     private SimpleCursorAdapter dataAdapter;
 
-    private BroadcastReceiver receiver;
+    private BroadcastReceiver receiver = new UpdateNotificationList();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +118,6 @@ public class MainActivity extends Activity implements
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.chrismar035.pushsomething.UpdateNotificationList");
 
-        receiver = new UpdateNotificationList();
         registerReceiver(receiver, filter);
     }
 
@@ -146,7 +145,9 @@ public class MainActivity extends Activity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(receiver);
+        try {
+            unregisterReceiver(receiver);
+        } catch (IllegalArgumentException e) { Log.e(TAG, "Skipping notification update receiver unregister"); }
     }
 
     @Override
