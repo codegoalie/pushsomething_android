@@ -273,7 +273,7 @@ public class MainActivity extends Activity implements
             request.setEntity(entity);
             HttpResponse response = client.execute(request);
 
-            Log.i(TAG, "Posting Complete" + response);
+            Log.i(TAG, "Posting Complete " + response);
         }
 
         private String getJWT() {
