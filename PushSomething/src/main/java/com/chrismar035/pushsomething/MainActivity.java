@@ -1,5 +1,6 @@
 package com.chrismar035.pushsomething;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -52,7 +54,7 @@ public class MainActivity extends Activity implements
     private final static String PROPERTY_ACCOUNT_NAME = "account_name";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
-    private final static String API_ROOT = "http://pushsomething.com/api/v1/";
+    private final static String API_ROOT = "http://192.168.1.65:3000/api/v1/";
     String SENDER_ID = "762651962812";
     String SERVER_WEB_ID = "762651962812.apps.googleusercontent.com";
 
@@ -69,6 +71,7 @@ public class MainActivity extends Activity implements
 
     private BroadcastReceiver receiver = new UpdateNotificationList();
 
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -353,6 +356,7 @@ public class MainActivity extends Activity implements
         return true;
     }
 
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     private void registerForGCM() {
         if(checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(getApplicationContext());

@@ -12,18 +12,14 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
-import java.sql.SQLException;
-
 public class GcmBroadcastReceiver extends BroadcastReceiver {
     private static Context mContext;
     public static final int NOTIFICATION_ID = 1;
     static final String TAG = "PushSomething";
 
-    private NotificationsDataSource dataSource;
-
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i(TAG, "Received GCM Intent");
+        Log.i(TAG, "PushSomething:GcmBroadcastReceiver");
         mContext = context;
         Bundle extras = intent.getExtras();
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(mContext);
@@ -37,8 +33,10 @@ public class GcmBroadcastReceiver extends BroadcastReceiver {
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
                 sendStringNotification("Deleted messages on server", extras.toString());
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-                Notification notification = notificationFromBundle(extras);
-                sendNotification(notification);
+                Log.i(TAG, "Building Notification");
+                NotificationBuilder builder = new NotificationBuilder(mContext, extras);
+                Log.i(TAG, "Sending Notification");
+                builder.send();
             }
         } else {
             Log.i(TAG, "Extras is empty. No notification sent.");
@@ -62,55 +60,5 @@ public class GcmBroadcastReceiver extends BroadcastReceiver {
 
         mBuilder.setContentIntent(contentIntent);
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
-    }
-
-    private void sendNotification(Notification notification) {
-        Log.i(TAG, "Sending Notification");
-
-        NotificationManager mNotificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        PendingIntent contentIntent = PendingIntent.getActivity(mContext, 0, new Intent(mContext, MainActivity.class), 0);
-
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext)
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle(notification.getTitle());
-
-        if(!notification.getBody().isEmpty()) {
-            mBuilder.setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(notification.getBody()))
-                .setContentText(notification.getBody());
-        }
-
-        mBuilder.setContentIntent(contentIntent);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
-    }
-
-    private Notification notificationFromBundle(Bundle extras) {
-        String title, body;
-
-        if(extras.containsKey("title")) {
-            title = extras.getString("title");
-        } else {
-            title = "<unknown title>";
-        }
-        if(extras.containsKey("body")) {
-            body = extras.getString("body");
-        } else {
-            body = "";
-        }
-        dataSource = new NotificationsDataSource(mContext);
-        try {
-            dataSource.open();
-            Notification notification = dataSource.createNotification(title, body);
-
-            Intent intent = new Intent();
-            intent.setAction("com.chrismar035.pushsomething.UpdateNotificationList");
-            mContext.sendBroadcast(intent);
-
-            return notification;
-        } catch (SQLException e) {
-            Log.e(TAG, "Unable to open Notification data source in GCM receiver notification from bundle");
-            return new Notification(title, body);
-        }
     }
 }
