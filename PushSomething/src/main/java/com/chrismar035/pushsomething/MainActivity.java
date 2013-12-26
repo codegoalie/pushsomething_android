@@ -54,7 +54,7 @@ public class MainActivity extends Activity implements
     private final static String PROPERTY_ACCOUNT_NAME = "account_name";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
-    private final static String API_ROOT = "http://192.168.1.65:3000/api/v1/";
+    private final static String API_ROOT = "http://pushsomething.com/api/v1/";
     String SENDER_ID = "762651962812";
     String SERVER_WEB_ID = "762651962812.apps.googleusercontent.com";
 
