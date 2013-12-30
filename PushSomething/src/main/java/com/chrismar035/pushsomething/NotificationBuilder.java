@@ -87,7 +87,7 @@ public class NotificationBuilder {
 
         NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, MainActivity.class), 0);
+        Intent acknowledgeIntent = new Intent(context, AcknowledgeService.class);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.ic_launcher)
@@ -102,6 +102,7 @@ public class NotificationBuilder {
 
         mBuilder.setAutoCancel(true);
 
+        PendingIntent contentIntent = PendingIntent.getService(context, 0, acknowledgeIntent, 0);
         mBuilder.setContentIntent(contentIntent);
         mNotificationManager.notify(reasonableNotificationId(notification.getServerId()),
                                     mBuilder.build());
