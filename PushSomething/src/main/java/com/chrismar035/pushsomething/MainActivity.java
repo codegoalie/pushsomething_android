@@ -403,6 +403,13 @@ public class MainActivity extends Activity implements
         androidId = "" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 
         UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
+
+        Log.i(TAG, "committing uuid " + deviceUuid.toString());
+        SharedPreferences settings = getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("uuid", deviceUuid.toString());
+        editor.commit();
+
         return deviceUuid.toString();
     }
 }
