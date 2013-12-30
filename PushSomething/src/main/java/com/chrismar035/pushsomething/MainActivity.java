@@ -73,7 +73,7 @@ public class MainActivity extends Activity implements
 
     private BroadcastReceiver receiver = new UpdateNotificationList();
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -331,6 +331,7 @@ public class MainActivity extends Activity implements
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     private String getRegistrationId(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
         String registrationId = prefs.getString(PROPERTY_REG_ID, "");
