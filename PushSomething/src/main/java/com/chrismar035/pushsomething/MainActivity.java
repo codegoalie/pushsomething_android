@@ -92,7 +92,6 @@ public class MainActivity extends Activity implements
 
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
-        registerForGCM();
 
         final ListView listview = (ListView) findViewById(R.id.notification_list);
 
@@ -165,6 +164,7 @@ public class MainActivity extends Activity implements
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "Signed in as: " + mPlusClient.getAccountName());
+        registerForGCM();
     }
 
     @Override
