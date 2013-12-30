@@ -49,7 +49,7 @@ public class GcmBroadcastReceiver extends BroadcastReceiver {
         Log.i(TAG, "Sending String Notification");
         NotificationManager mNotificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(mContext, 0, new Intent(mContext, MainActivity.class), 0);
+        PendingIntent contentIntent = PendingIntent.getService(mContext, 0, new Intent(mContext, AcknowledgeService.class), 0);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext)
                 .setSmallIcon(R.drawable.ic_launcher)
