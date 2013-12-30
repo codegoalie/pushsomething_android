@@ -92,6 +92,7 @@ public class NotificationBuilder {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setContentTitle(notification.getTitle());
+        acknowledgeIntent.setAction(String.valueOf(notification.getServerId()));
 
         if(!notification.getBody().isEmpty()) {
             mBuilder.setStyle(new NotificationCompat.BigTextStyle()
