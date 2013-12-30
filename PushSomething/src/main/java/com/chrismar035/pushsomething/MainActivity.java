@@ -276,7 +276,28 @@ public class MainActivity extends Activity implements
             request.setEntity(entity);
             HttpResponse response = client.execute(request);
 
-            Log.i(TAG, "Posting Complete " + response);
+            Log.i(TAG, "Posting Complete " + response.toString());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+            String json = reader.readLine();
+            SharedPreferences prefs = getSharedPreferences(MainActivity.class.getSimpleName(), 0);
+
+            Log.i(TAG, "JSON response: " + json);
+            try {
+                JSONObject full_body = new JSONObject(json);
+                JSONObject receiver = full_body.getJSONObject("receiver");
+                SharedPreferences.Editor editor = prefs.edit();
+                Integer server_id = receiver.getInt("id");
+                String auth_token = receiver.getString("auth_token");
+
+                editor.putInt("server_id", server_id);
+                editor.putString("auth_token", auth_token);
+                editor.commit();
+
+                Log.i(TAG, "Committing server id: " + server_id + "|auth_token: " + auth_token);
+            } catch (JSONException e) {
+                Log.e(TAG, "Parsing registration JSON failed!!");
+                e.printStackTrace();
+            }
         }
 
         private String getJWT() {
