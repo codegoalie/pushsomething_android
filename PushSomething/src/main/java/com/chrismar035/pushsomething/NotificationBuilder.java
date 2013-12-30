@@ -104,6 +104,7 @@ public class NotificationBuilder {
 
         PendingIntent contentIntent = PendingIntent.getService(context, 0, acknowledgeIntent, 0);
         mBuilder.setContentIntent(contentIntent);
+        mBuilder.setDeleteIntent(contentIntent);
         mNotificationManager.notify(reasonableNotificationId(notification.getServerId()),
                                     mBuilder.build());
     }
