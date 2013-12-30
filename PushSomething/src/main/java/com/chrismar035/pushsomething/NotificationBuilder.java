@@ -88,6 +88,8 @@ public class NotificationBuilder {
         NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         Intent acknowledgeIntent = new Intent(context, AcknowledgeService.class);
+        acknowledgeIntent.putExtra("EXTRA_NOTIFICATION_ID", (int)notification.getServerId());
+
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.ic_launcher)
