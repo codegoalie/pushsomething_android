@@ -100,6 +100,8 @@ public class NotificationBuilder {
                     .setContentText(notification.getBody());
         }
 
+        mBuilder.setAutoCancel(true);
+
         mBuilder.setContentIntent(contentIntent);
         mNotificationManager.notify(reasonableNotificationId(notification.getServerId()),
                                     mBuilder.build());
