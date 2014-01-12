@@ -21,6 +21,7 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.ConnectionResult;
@@ -77,6 +78,8 @@ public class MainActivity extends Activity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Crashlytics.start(this);
+
         Log.i(TAG, "Creating Main");
         SharedPreferences prefs = getSharedPreferences(PROPERTY_ACCOUNT_NAME, 0);
         String account_name = prefs.getString(PROPERTY_ACCOUNT_NAME, "");
