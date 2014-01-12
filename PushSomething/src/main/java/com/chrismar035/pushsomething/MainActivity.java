@@ -30,21 +30,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.plus.PlusClient;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HTTP;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -57,10 +43,8 @@ public class MainActivity extends Activity implements
     private final static String PROPERTY_ACCOUNT_NAME = "account_name";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
-    private final static String API_ROOT = "http://pushsomething.com/api/v1/";
     String SENDER_ID = "762651962812";
     String SERVER_WEB_ID = "762651962812.apps.googleusercontent.com";
-
 
     static final String TAG = "PushSomething";
 
@@ -250,7 +234,9 @@ public class MainActivity extends Activity implements
                 regID = gcm.register(SENDER_ID);
                 msg = "Device registered, registration ID=" + regID;
 
-                sendRegistrationToBackend();
+                ApiClient client = new ApiClient(context);
+                client.sendRegistrationToBackend(getJWT(), regID, getUUID());
+
                 storeRegistrationId(context, regID);
             } catch (IOException ex) {
                 msg = "BackgroundRegistration Error: " + ex.getMessage();
@@ -261,54 +247,6 @@ public class MainActivity extends Activity implements
 
         @Override
         protected void onPostExecute(String msg) {
-        }
-
-        private void sendRegistrationToBackend() throws IOException {
-            JSONObject payload = new JSONObject();
-
-            try {
-                payload.put("jwt", getJWT());
-                payload.put("gcm_id", regID);
-                payload.put("uid", getUUID());
-                Log.i(TAG, "Registering with the server\n" + payload.toString(2));
-
-            } catch (JSONException e) {
-                Log.i(TAG, "JSON creation failed");
-            }
-
-            HttpParams params = new BasicHttpParams();
-            HttpConnectionParams.setConnectionTimeout(params, 10000);
-            HttpConnectionParams.getSoTimeout(params);
-            HttpClient client = new DefaultHttpClient(params);
-
-            HttpPost request = new HttpPost(API_ROOT + "receivers");
-            StringEntity entity = new StringEntity(payload.toString(), HTTP.UTF_8);
-            entity.setContentType("application/json");
-            request.setEntity(entity);
-            HttpResponse response = client.execute(request);
-
-            Log.i(TAG, "Posting Complete " + response.toString());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-            String json = reader.readLine();
-            SharedPreferences prefs = getSharedPreferences(MainActivity.class.getSimpleName(), 0);
-
-            Log.i(TAG, "JSON response: " + json);
-            try {
-                JSONObject full_body = new JSONObject(json);
-                JSONObject receiver = full_body.getJSONObject("receiver");
-                SharedPreferences.Editor editor = prefs.edit();
-                Integer server_id = receiver.getInt("id");
-                String auth_token = receiver.getString("auth_token");
-
-                editor.putInt("server_id", server_id);
-                editor.putString("auth_token", auth_token);
-                editor.commit();
-
-                Log.i(TAG, "Committing server id: " + server_id + "|auth_token: " + auth_token);
-            } catch (JSONException e) {
-                Log.e(TAG, "Parsing registration JSON failed!!");
-                e.printStackTrace();
-            }
         }
 
         private String getJWT() {

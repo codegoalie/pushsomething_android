@@ -56,6 +56,7 @@
             android:enabled="true"
             android:exported="true" >
         </service>
+        <meta-data android:name="api_root" android:value="http://pushsomething.com/api/v1/" />
         <meta-data android:name="com.crashlytics.ApiKey" android:value="0453ebaad38fa78337753e7852c7c3b1df9e42f4"/>
     </application>
 
