@@ -19,6 +19,7 @@ public class AcknowledgeService extends IntentService {
         Log.i(TAG, "Starting Main Activity");
         final Intent mainIntent = new Intent(this, MainActivity.class);
         mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(mainIntent);
 
         Bundle extras = intent.getExtras();
