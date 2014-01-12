@@ -180,6 +180,8 @@ public class MainActivity extends Activity implements
     }
 
     public void signOutClick(MenuItem _) {
+        clearGCM();
+        deleteNotifications();
         if (mPlusClient.isConnected()) {
             mPlusClient.clearDefaultAccount();
             mPlusClient.disconnect();
@@ -194,7 +196,7 @@ public class MainActivity extends Activity implements
         }
     }
 
-    public void clearGCMClick(MenuItem _) {
+    public void clearGCM() {
         Log.i(TAG, "Clearing GCM ID");
         final SharedPreferences prefs = getGCMPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
@@ -204,6 +206,10 @@ public class MainActivity extends Activity implements
     }
 
     public void deleteNotificationsClick(MenuItem _) {
+        deleteNotifications();
+    }
+
+    public void deleteNotifications() {
         Cursor cursor = dataSource.getAllNotifications();
 
         cursor.moveToFirst();
