@@ -7,7 +7,6 @@ import android.util.Log;
 
 public class AcknowledgeService extends IntentService {
     final static private String TAG = "PushSomething:AcknowledgeService";
-    private Integer notification_id;
 
     public AcknowledgeService() {
         super("AcknowledgeService");
@@ -23,6 +22,7 @@ public class AcknowledgeService extends IntentService {
         startActivity(mainIntent);
 
         Bundle extras = intent.getExtras();
+        Integer notification_id = -1;
 
         if(extras != null) {
             notification_id = extras.getInt("EXTRA_NOTIFICATION_ID", -1);
