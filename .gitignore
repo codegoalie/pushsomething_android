@@ -1,5 +1,5 @@
 .gradle
 /local.properties
 /.idea/workspace.xml
-.idea/libraries/crashlytics_1_1_5.xml
 .DS_Store
+/build

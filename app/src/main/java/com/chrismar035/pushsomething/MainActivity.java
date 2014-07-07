@@ -1,6 +1,5 @@
 package com.chrismar035.pushsomething;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,7 +10,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -21,7 +19,6 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.common.ConnectionResult;
@@ -29,6 +26,18 @@ import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.plus.PlusClient;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -43,8 +52,10 @@ public class MainActivity extends Activity implements
     private final static String PROPERTY_ACCOUNT_NAME = "account_name";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
+    private final static String API_ROOT = "http://pushsomething.com/api/v1/";
     String SENDER_ID = "762651962812";
     String SERVER_WEB_ID = "762651962812.apps.googleusercontent.com";
+
 
     static final String TAG = "PushSomething";
 
@@ -56,14 +67,11 @@ public class MainActivity extends Activity implements
     private NotificationsDataSource dataSource;
     private SimpleCursorAdapter dataAdapter;
 
-    private BroadcastReceiver receiver = new UpdateNotificationList();
+    private BroadcastReceiver receiver;
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Crashlytics.start(this);
-
         Log.i(TAG, "Creating Main");
         SharedPreferences prefs = getSharedPreferences(PROPERTY_ACCOUNT_NAME, 0);
         String account_name = prefs.getString(PROPERTY_ACCOUNT_NAME, "");
@@ -79,6 +87,7 @@ public class MainActivity extends Activity implements
 
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
+        registerForGCM();
 
         final ListView listview = (ListView) findViewById(R.id.notification_list);
 
@@ -109,6 +118,7 @@ public class MainActivity extends Activity implements
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.chrismar035.pushsomething.UpdateNotificationList");
 
+        receiver = new UpdateNotificationList();
         registerReceiver(receiver, filter);
     }
 
@@ -136,9 +146,9 @@ public class MainActivity extends Activity implements
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        try {
+        if (receiver != null) {
             unregisterReceiver(receiver);
-        } catch (IllegalArgumentException e) { Log.e(TAG, "Skipping notification update receiver unregister"); }
+        }
     }
 
     @Override
@@ -151,7 +161,6 @@ public class MainActivity extends Activity implements
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "Signed in as: " + mPlusClient.getAccountName());
-        registerForGCM();
     }
 
     @Override
@@ -164,8 +173,6 @@ public class MainActivity extends Activity implements
     }
 
     public void signOutClick(MenuItem _) {
-        clearGCM();
-        deleteNotifications();
         if (mPlusClient.isConnected()) {
             mPlusClient.clearDefaultAccount();
             mPlusClient.disconnect();
@@ -180,7 +187,7 @@ public class MainActivity extends Activity implements
         }
     }
 
-    public void clearGCM() {
+    public void clearGCMClick(MenuItem _) {
         Log.i(TAG, "Clearing GCM ID");
         final SharedPreferences prefs = getGCMPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
@@ -190,10 +197,6 @@ public class MainActivity extends Activity implements
     }
 
     public void deleteNotificationsClick(MenuItem _) {
-        deleteNotifications();
-    }
-
-    public void deleteNotifications() {
         Cursor cursor = dataSource.getAllNotifications();
 
         cursor.moveToFirst();
@@ -234,9 +237,7 @@ public class MainActivity extends Activity implements
                 regID = gcm.register(SENDER_ID);
                 msg = "Device registered, registration ID=" + regID;
 
-                ApiClient client = new ApiClient(context);
-                client.sendRegistrationToBackend(getJWT(), regID, getUUID());
-
+                sendRegistrationToBackend();
                 storeRegistrationId(context, regID);
             } catch (IOException ex) {
                 msg = "BackgroundRegistration Error: " + ex.getMessage();
@@ -247,6 +248,35 @@ public class MainActivity extends Activity implements
 
         @Override
         protected void onPostExecute(String msg) {
+        }
+
+        private void sendRegistrationToBackend() throws IOException {
+            JSONObject payload = new JSONObject();
+
+            final TelephonyManager tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+
+            try {
+                payload.put("jwt", getJWT());
+                payload.put("gcm_id", regID);
+                payload.put("uid", getUUID());
+                Log.i(TAG, "Registering with the server\n" + payload.toString(2));
+
+            } catch (JSONException e) {
+                Log.i(TAG, "JSON creation failed");
+            }
+
+            HttpParams params = new BasicHttpParams();
+            HttpConnectionParams.setConnectionTimeout(params, 10000);
+            HttpConnectionParams.getSoTimeout(params);
+            HttpClient client = new DefaultHttpClient(params);
+
+            HttpPost request = new HttpPost(API_ROOT + "receivers");
+            StringEntity entity = new StringEntity(payload.toString(), HTTP.UTF_8);
+            entity.setContentType("application/json");
+            request.setEntity(entity);
+            HttpResponse response = client.execute(request);
+
+            Log.i(TAG, "Posting Complete" + response);
         }
 
         private String getJWT() {
@@ -278,7 +308,6 @@ public class MainActivity extends Activity implements
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     private String getRegistrationId(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
         String registrationId = prefs.getString(PROPERTY_REG_ID, "");
@@ -327,7 +356,6 @@ public class MainActivity extends Activity implements
         return true;
     }
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     private void registerForGCM() {
         if(checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(getApplicationContext());
@@ -353,13 +381,6 @@ public class MainActivity extends Activity implements
         androidId = "" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 
         UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
-
-        Log.i(TAG, "committing uuid " + deviceUuid.toString());
-        SharedPreferences settings = getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString("uuid", deviceUuid.toString());
-        editor.commit();
-
         return deviceUuid.toString();
     }
 }

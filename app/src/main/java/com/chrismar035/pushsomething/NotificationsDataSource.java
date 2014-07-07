@@ -16,7 +16,6 @@ public class NotificationsDataSource {
     private SQLiteDatabase database;
     private NotificationTableHelper dbHelper;
     private String[] allColumns = { NotificationTableHelper.COLUMN_ID,
-                                    NotificationTableHelper.COLUMN_SERVER_ID,
                                     NotificationTableHelper.COLUMN_TITLE,
                                     NotificationTableHelper.COLUMN_BODY,
                                     NotificationTableHelper.COLUMN_RECEIVED_AT };
@@ -33,25 +32,12 @@ public class NotificationsDataSource {
         dbHelper.close();
     }
 
-    public void saveNotification(Notification notification) {
-        ContentValues values = new ContentValues();
-        Log.i(TAG, "Notification: " + notification.getServerId());
-        values.put(NotificationTableHelper.COLUMN_SERVER_ID, notification.getServerId());
-        values.put(NotificationTableHelper.COLUMN_TITLE, notification.getTitle());
-        values.put(NotificationTableHelper.COLUMN_BODY, notification.getBody());
-        values.put(NotificationTableHelper.COLUMN_RECEIVED_AT, notification.getCreatedAt());
-
-        database.insertWithOnConflict(NotificationTableHelper.TABLE_NOTIFICATIONS,
-                null, values, SQLiteDatabase.CONFLICT_REPLACE);
+    public Notification createNotification(String title, String body) {
+        return this.createNotification(title, body, System.currentTimeMillis()/1000);
     }
 
-    public Notification createNotification(int server_id, String title, String body) {
-        return this.createNotification(server_id, title, body, System.currentTimeMillis()/1000);
-    }
-
-    public Notification createNotification(int server_id, String title, String body, long receivedAt) {
+    public Notification createNotification(String title, String body, long receivedAt) {
         ContentValues values = new ContentValues();
-        values.put(NotificationTableHelper.COLUMN_SERVER_ID, server_id);
         values.put(NotificationTableHelper.COLUMN_TITLE, title);
         values.put(NotificationTableHelper.COLUMN_BODY, body);
         values.put(NotificationTableHelper.COLUMN_RECEIVED_AT, receivedAt);
@@ -103,16 +89,10 @@ public class NotificationsDataSource {
 
     private Notification cursorToNotification(Cursor cursor) {
         Notification notification = new Notification();
-        Log.i(TAG, "Notification columns: ");
-        String[] cols = cursor.getColumnNames();
-        for (String col : cols) {
-            Log.i(TAG, col);
-        }
-        notification.setId(cursor.getInt(0));
-        notification.setServerId(cursor.getInt(1));
-        notification.setTitle(cursor.getString(2));
-        notification.setBody(cursor.getString(3));
-        notification.setCreatedAt(cursor.getLong(4));
+        notification.setId(cursor.getLong(0));
+        notification.setTitle(cursor.getString(1));
+        notification.setBody(cursor.getString(2));
+        notification.setCreatedAt(cursor.getLong(3));
         return notification;
     }
 }

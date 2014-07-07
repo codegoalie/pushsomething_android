@@ -3,6 +3,10 @@
         android:title="@string/action_delete_notifications"
         android:onClick="deleteNotificationsClick" />
 
+    <item android:id="@+id/action_clear_GCM"
+        android:title="@string/action_clear_gcm"
+        android:onClick="clearGCMClick" />
+
     <item android:id="@+id/action_sign_ouy"
         android:title="@string/action_sign_out"
         android:onClick="signOutClick"
